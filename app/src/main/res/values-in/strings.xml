@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StoryApps</string>
+    <string name="register_succeed">Pendaftaran Sukses!</string>
+    <string name="continue_login">Lanjut Login</string>
+    <string name="confirm_logout">Apakah Anda yakin untuk logout?</string>
+    <string name="yes">Ya</string>
+    <string name="no">Tidak</string>
+    <string name="success_upload">Ceritamu berhasil diunggah!</string>
+    <string name="button_back">Button Kembali</string>
+    <string name="email_address">Alamat Email</string>
+    <string name="hello_welcome">Hello, Selamat Datang!</string>
+    <string name="have_an_account">Belum mempunyai akun?</string>
+    <string name="register_here">Daftar sekarang</string>
+    <string name="gallery">Galeri</string>
+    <string name="add_description_here">Tambahkan deskripsi disini…</string>
+    <string name="post_now">Unggah Sekarang</string>
+    <string name="register_account">Daftar Akun</string>
+    <string name="create_a_new_account">Buat akun baru</string>
+    <string name="name">Nama</string>
+    <string name="already_have_an_account">Sudah memiliki akun?</string>
+    <string name="login">Login</string>
+    <string name="add_story">Add Story</string>
+    <string name="preview_image">Preview Image</string>
+    <string name="post_story">Unggah Cerita</string>
+    <string name="change_language">Change language</string>
+    <string name="log_out">Log Out</string>
+</resources>

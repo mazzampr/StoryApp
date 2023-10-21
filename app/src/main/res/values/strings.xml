@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">StoryApps</string>
+    <string name="hello_blank_fragment" translatable="false">Hello blank fragment</string>
+    <string name="register_succeed">Register Succeed!</string>
+    <string name="continue_login">Continue Login</string>
+    <string name="confirm_logout">Are you sure to logout?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="success_upload">Your story has been uploaded successfully!</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="button_back">Button Back</string>
+    <string name="email_address">Email Address</string>
+    <string name="password" translatable="false">Password</string>
+    <string name="hello_welcome">Hello, Welcome!</string>
+    <string name="have_an_account">Don\'t you have an account?</string>
+    <string name="register_here">Register here</string>
+    <string name="gallery">Gallery</string>
+    <string name="camera" translatable="false">Camera</string>
+    <string name="add_description_here">Add Description here…</string>
+    <string name="post_now">Post Now</string>
+    <string name="register_account">Register Account</string>
+    <string name="create_a_new_account">Create a new account</string>
+    <string name="name">Name</string>
+    <string name="already_have_an_account">Already have an account?</string>
+    <string name="login">" Login"</string>
+    <string name="add_story">Add Story</string>
+    <string name="preview_image">Preview Image</string>
+    <string name="post_story">Post Story</string>
+    <string name="logo">Logo</string>
+    <string name="change_language">Change language</string>
+    <string name="log_out">Log Out</string>
+</resources>
