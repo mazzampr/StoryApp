@@ -14,6 +14,8 @@ import com.mazzampr.storyapps.data.remote.response.ListStoryItem
 import com.mazzampr.storyapps.databinding.FragmentDetailBinding
 import com.mazzampr.storyapps.ui.ViewModelFactory
 import com.mazzampr.storyapps.ui.main.viewmodel.DetailViewModel
+import com.mazzampr.storyapps.utils.hide
+import com.mazzampr.storyapps.utils.show
 
 class DetailFragment : Fragment() {
 
@@ -33,7 +35,7 @@ class DetailFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        observeDetailStory()
+        getToken()
 
     }
 
@@ -43,18 +45,28 @@ class DetailFragment : Fragment() {
 
     }
 
-    private fun observeDetailStory() {
+    private fun getToken() {
+        viewModel.getSession().observe(viewLifecycleOwner) {token ->
+            if (!(token == null || token == "")) {
+                observeDetailStory("Bearer $token")
+            }
+        }
+    }
+
+    private fun observeDetailStory(token: String) {
         val storyId = DetailFragmentArgs.fromBundle(arguments as Bundle).userDetail
         storyId?.let {
-            viewModel.getDetailStory(storyId).observe(viewLifecycleOwner) {
+            viewModel.getDetailStory(token, storyId).observe(viewLifecycleOwner) {
                 when(it) {
                     is Result.Loading -> {
-
+                        binding.progressBar.show()
                     }
                     is Result.Success -> {
+                        binding.progressBar.hide()
                         setupDetailPage(it.data)
                     }
                     is Result.Error -> {
+                        binding.progressBar.hide()
                         Toast.makeText(requireContext(), it.error, Toast.LENGTH_SHORT).show()
                     }
 

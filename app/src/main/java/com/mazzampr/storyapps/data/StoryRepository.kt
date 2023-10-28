@@ -30,9 +30,9 @@ class StoryRepository private constructor(
     private val registerResult = MediatorLiveData<Result<RegisterResponse>>()
     private val uploadResult = MediatorLiveData<Result<ErrorResponse>>()
 
-    fun uploadStory(image: MultipartBody.Part, desc: RequestBody) : LiveData<Result<ErrorResponse>> {
+    fun uploadStory(token: String, image: MultipartBody.Part, desc: RequestBody) : LiveData<Result<ErrorResponse>> {
         uploadResult.value = Result.Loading
-        apiService.uploadStory(image, desc).enqueue(object : Callback<ErrorResponse>{
+        apiService.uploadStory(token, image, desc).enqueue(object : Callback<ErrorResponse>{
             override fun onResponse(call: Call<ErrorResponse>, response: Response<ErrorResponse>) {
                 try {
                     if (response.isSuccessful) {
@@ -134,9 +134,9 @@ class StoryRepository private constructor(
         userPreference.logout()
     }
 
-     fun getAllStories(): LiveData<Result<List<ListStoryItem>>> {
+     fun getAllStories(token: String,): LiveData<Result<List<ListStoryItem>>> {
         allStoriesResult.value = Result.Loading
-        apiService.getStories().enqueue(object: Callback<StoryResponse> {
+        apiService.getStories(token).enqueue(object: Callback<StoryResponse> {
             override fun onResponse(call: Call<StoryResponse>, response: Response<StoryResponse>) {
                 try {
                     if (response.isSuccessful) {
@@ -162,9 +162,9 @@ class StoryRepository private constructor(
         return allStoriesResult
     }
 
-    fun getStoryDetail(id: String): LiveData<Result<ListStoryItem>> {
+    fun getStoryDetail(token: String, id: String): LiveData<Result<ListStoryItem>> {
         detailStoryResult.value = Result.Loading
-        apiService.getDetailStory(id).enqueue(object : Callback<StoryResponse> {
+        apiService.getDetailStory(token, id).enqueue(object : Callback<StoryResponse> {
             override fun onResponse(call: Call<StoryResponse>, response: Response<StoryResponse>) {
                 try {
                     if (response.isSuccessful) {

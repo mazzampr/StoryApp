@@ -19,5 +19,5 @@ class HomeViewModel(private val repository: StoryRepository): ViewModel() {
           }
      }
 
-     fun getAllStories() = repository.getAllStories()
+     fun getAllStories(token: String,) = repository.getAllStories(token)
 }

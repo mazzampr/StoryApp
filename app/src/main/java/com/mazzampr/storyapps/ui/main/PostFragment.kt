@@ -35,6 +35,8 @@ class PostFragment : Fragment() {
     private val viewModel by viewModels<PostViewModel> { ViewModelFactory.getInstance(requireActivity()) }
     private var currentImageUri: Uri? = null
 
+    private var tokenPost = ""
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -69,8 +71,16 @@ class PostFragment : Fragment() {
         }
     }
 
-    private fun observeUpload(image: MultipartBody.Part, desc: RequestBody) {
-        viewModel.uploadStory(image, desc).observe(viewLifecycleOwner) {
+    private fun getToken() {
+        viewModel.getSession().observe(viewLifecycleOwner) {token ->
+            if (!(token == null || token == "")) {
+                tokenPost = "Bearer $token"
+            }
+        }
+    }
+
+    private fun observeUpload(token: String, image: MultipartBody.Part, desc: RequestBody) {
+        viewModel.uploadStory(token, image, desc).observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
                     binding.progressIndicator.show()
@@ -121,7 +131,8 @@ class PostFragment : Fragment() {
                 imageFile.name,
                 requestImageFile
             )
-            observeUpload(multipartBody, requestBody)
+            getToken()
+            observeUpload(tokenPost, multipartBody, requestBody)
         } ?: toast("Gambar Kosong!")
 
     }

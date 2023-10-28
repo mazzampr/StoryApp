@@ -48,7 +48,7 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setUpRv()
-        observe()
+        getToken()
         setAction()
     }
 
@@ -70,8 +70,16 @@ class HomeFragment : Fragment() {
         binding.rvListStory.adapter = adapter
     }
 
-    private fun observe() {
-        viewModel.getAllStories().observe(viewLifecycleOwner) {
+    private fun getToken() {
+        viewModel.getSession().observe(viewLifecycleOwner) {token ->
+            if (!(token == null || token == "")) {
+                observe("Bearer $token")
+            }
+        }
+    }
+
+    private fun observe(token: String) {
+        viewModel.getAllStories(token).observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
                     showLoading(true)
