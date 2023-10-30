@@ -3,7 +3,13 @@ package com.mazzampr.storyapps.data
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.paging.ExperimentalPagingApi
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.liveData
 import com.google.gson.Gson
+import com.mazzampr.storyapps.data.local.StoryRemoteMediator
 import com.mazzampr.storyapps.data.pref.UserPreference
 import com.mazzampr.storyapps.data.remote.response.ErrorResponse
 import com.mazzampr.storyapps.data.remote.response.ListStoryItem
@@ -11,6 +17,7 @@ import com.mazzampr.storyapps.data.remote.response.LoginResponse
 import com.mazzampr.storyapps.data.remote.response.RegisterResponse
 import com.mazzampr.storyapps.data.remote.response.StoryResponse
 import com.mazzampr.storyapps.data.remote.retrofit.ApiService
+import com.mazzampr.storyapps.data.room.StoryDatabase
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -20,6 +27,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 
 class StoryRepository private constructor(
+    private val database: StoryDatabase,
     private val apiService: ApiService,
     private val userPreference: UserPreference
 )
@@ -30,9 +38,9 @@ class StoryRepository private constructor(
     private val registerResult = MediatorLiveData<Result<RegisterResponse>>()
     private val uploadResult = MediatorLiveData<Result<ErrorResponse>>()
 
-    fun uploadStory(token: String, image: MultipartBody.Part, desc: RequestBody) : LiveData<Result<ErrorResponse>> {
+    fun uploadStory(token: String, image: MultipartBody.Part, desc: RequestBody, lat: Float, lon:Float) : LiveData<Result<ErrorResponse>> {
         uploadResult.value = Result.Loading
-        apiService.uploadStory(token, image, desc).enqueue(object : Callback<ErrorResponse>{
+        apiService.uploadStory(token, image, desc, lat, lon).enqueue(object : Callback<ErrorResponse>{
             override fun onResponse(call: Call<ErrorResponse>, response: Response<ErrorResponse>) {
                 try {
                     if (response.isSuccessful) {
@@ -49,7 +57,7 @@ class StoryRepository private constructor(
                     val jsonInString = e.response()?.errorBody()?.string()
                     val errorBody = Gson().fromJson(jsonInString, ErrorResponse::class.java)
                     val errorMessage = errorBody.message
-                    resultLogin.value = Result.Error(errorMessage!!)
+                    uploadResult.value = Result.Error(errorMessage!!)
                 }
             }
 
@@ -134,32 +142,32 @@ class StoryRepository private constructor(
         userPreference.logout()
     }
 
-     fun getAllStories(token: String,): LiveData<Result<List<ListStoryItem>>> {
+    fun getStoryFromDb(): LiveData<Result<List<ListStoryItem>>> {
         allStoriesResult.value = Result.Loading
-        apiService.getStories(token).enqueue(object: Callback<StoryResponse> {
-            override fun onResponse(call: Call<StoryResponse>, response: Response<StoryResponse>) {
-                try {
-                    if (response.isSuccessful) {
-                        val story = response.body()?.listStory as List<ListStoryItem>
-                        allStoriesResult.value  = Result.Success(story)
-                        Log.d("Response", story.toString())
-                    } else {
-                        throw HttpException(response)
-                    }
-                } catch (e: HttpException) {
-                    val jsonInString = e.response()?.errorBody()?.string()
-                    val errorBody = Gson().fromJson(jsonInString, StoryResponse::class.java)
-                    val errorMessage = errorBody.message
-                    allStoriesResult.value = Result.Error(errorMessage.toString())
-                }
+        try {
+            val localData = database.storyDao().getAllStoryDb()
+            allStoriesResult.addSource(localData) {
+                allStoriesResult.value = Result.Success(it)
             }
+        } catch (e: HttpException) {
+            val jsonInString = e.response()?.errorBody()?.string()
+            val errorBody = Gson().fromJson(jsonInString, ErrorResponse::class.java)
+            val errorMessage = errorBody.message
+            allStoriesResult.value = Result.Error(errorMessage!!)
+        }
 
-            override fun onFailure(call: Call<StoryResponse>, t: Throwable) {
-                allStoriesResult.value = Result.Error(t.message.toString())
-            }
-
-        })
         return allStoriesResult
+    }
+
+     fun getAllStories(token: String): LiveData<PagingData<ListStoryItem>> {
+        @OptIn(ExperimentalPagingApi::class)
+        return Pager(
+            config = PagingConfig(pageSize = 5),
+            remoteMediator = StoryRemoteMediator(token, database, apiService),
+            pagingSourceFactory = {
+                database.storyDao().getAllStory()
+            }
+        ).liveData
     }
 
     fun getStoryDetail(token: String, id: String): LiveData<Result<ListStoryItem>> {
@@ -195,11 +203,12 @@ class StoryRepository private constructor(
         @Volatile
         private var instance: StoryRepository? = null
         fun getInstance(
+            database: StoryDatabase,
             apiService: ApiService,
             userPreference: UserPreference
         ): StoryRepository =
             instance ?: synchronized(this) {
-                instance ?: StoryRepository(apiService, userPreference)
+                instance ?: StoryRepository(database, apiService, userPreference)
             }.also { instance = it }
     }
 }

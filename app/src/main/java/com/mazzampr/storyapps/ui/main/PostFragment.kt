@@ -1,7 +1,10 @@
 package com.mazzampr.storyapps.ui.main
 
+import android.Manifest
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -11,8 +14,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.maps.GoogleMap
 import com.mazzampr.storyapps.R
 import com.mazzampr.storyapps.data.Result
 import com.mazzampr.storyapps.databinding.FragmentPostBinding
@@ -29,12 +37,16 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class PostFragment : Fragment() {
-
+    private lateinit var mMap: GoogleMap
+    private lateinit var client: FusedLocationProviderClient
+    private lateinit var currentLocation: Location
     private var _binding: FragmentPostBinding? = null
+    private val permissionCode = 101
     private val binding get() = _binding!!
     private val viewModel by viewModels<PostViewModel> { ViewModelFactory.getInstance(requireActivity()) }
     private var currentImageUri: Uri? = null
-
+    private var lat = 0F
+    private var lon = 0F
     private var tokenPost = ""
 
     override fun onCreateView(
@@ -48,7 +60,8 @@ class PostFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        client = LocationServices.getFusedLocationProviderClient(requireContext())
+        getCurrentLocation()
         setupAction()
     }
 
@@ -79,8 +92,8 @@ class PostFragment : Fragment() {
         }
     }
 
-    private fun observeUpload(token: String, image: MultipartBody.Part, desc: RequestBody) {
-        viewModel.uploadStory(token, image, desc).observe(viewLifecycleOwner) {
+    private fun observeUpload(token: String, image: MultipartBody.Part, desc: RequestBody, lat: Float, lon: Float) {
+        viewModel.uploadStory(token, image, desc, lat, lon).observe(viewLifecycleOwner) {
             when(it) {
                 is Result.Loading -> {
                     binding.progressIndicator.show()
@@ -132,7 +145,7 @@ class PostFragment : Fragment() {
                 requestImageFile
             )
             getToken()
-            observeUpload(tokenPost, multipartBody, requestBody)
+            observeUpload(tokenPost, multipartBody, requestBody, lat, lon)
         } ?: toast("Gambar Kosong!")
 
     }
@@ -157,6 +170,47 @@ class PostFragment : Fragment() {
             btnBack.setOnClickListener {
                 findNavController().navigateUp()
             }
+        }
+    }
+
+    private fun getCurrentLocation() {
+        // Check permissions
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) !=
+            PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) !=
+            PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), permissionCode)
+        } else {
+            val task = client.lastLocation
+            task.addOnSuccessListener {location->
+                if (location != null) {
+                    currentLocation = location
+                    lat = currentLocation.latitude.toFloat()
+                    lon = currentLocation.longitude.toFloat()
+                }
+            }
+        }
+    }
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
+            if (isGranted) {
+                getMyLocation()
+            }
+        }
+    private fun getMyLocation() {
+        if (ContextCompat.checkSelfPermission(
+                this.requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            mMap.isMyLocationEnabled = true
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }
     }
 

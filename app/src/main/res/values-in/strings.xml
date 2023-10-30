@@ -20,9 +20,11 @@
     <string name="name">Nama</string>
     <string name="already_have_an_account">Sudah memiliki akun?</string>
     <string name="login">Login</string>
-    <string name="add_story">Add Story</string>
+    <string name="add_story">Tambah Cerita</string>
     <string name="preview_image">Preview Image</string>
     <string name="post_story">Unggah Cerita</string>
-    <string name="change_language">Change language</string>
-    <string name="log_out">Log Out</string>
+    <string name="change_language">Ganti Bahasa</string>
+    <string name="log_out">Keluar</string>
+    <string name="maps">Peta</string>
+    <string name="retry">Coba Lagi</string>
 </resources>

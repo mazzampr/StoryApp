@@ -1,5 +1,6 @@
 package com.mazzampr.storyapps.utils
 
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
@@ -110,6 +111,9 @@ fun rotateImage(source: Bitmap, angle: Float): Bitmap? {
     )
 }
 
+fun Activity.toast(msg: String) {
+    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+}
 fun Fragment.toast(msg: String) {
     Toast.makeText(requireContext(), msg, Toast.LENGTH_SHORT).show()
 }

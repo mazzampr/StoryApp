@@ -8,19 +8,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.mazzampr.storyapps.R
+import com.mazzampr.storyapps.adapter.LoadingStateAdapter
 import com.mazzampr.storyapps.adapter.StoriesAdapter
-import com.mazzampr.storyapps.data.Result
-import com.mazzampr.storyapps.data.remote.response.ListStoryItem
 import com.mazzampr.storyapps.databinding.FragmentHomeBinding
 import com.mazzampr.storyapps.ui.ViewModelFactory
 import com.mazzampr.storyapps.ui.main.viewmodel.HomeViewModel
-import com.mazzampr.storyapps.utils.hide
-import com.mazzampr.storyapps.utils.show
 
 class HomeFragment : Fragment() {
 
@@ -28,11 +24,11 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel by viewModels<HomeViewModel> { ViewModelFactory.getInstance(requireActivity()) }
 
-    private lateinit var adapter: StoriesAdapter
+//    private lateinit var adapter: StoriesAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        adapter = StoriesAdapter()
+//        adapter = StoriesAdapter()
     }
 
     override fun onCreateView(
@@ -61,14 +57,14 @@ class HomeFragment : Fragment() {
         binding.rvListStory.layoutManager = LinearLayoutManager(requireContext())
     }
 
-    private fun setUpRvStories(response: List<ListStoryItem>) {
-        adapter.differ.submitList(response)
-        adapter.onItemClick = {
-            val action = HomeFragmentDirections.actionHomeFragmentToDetailFragment(it.id)
-            findNavController().navigate(action)
-        }
-        binding.rvListStory.adapter = adapter
-    }
+//    private fun setUpRvStories(token: String) {
+//        adapter.onItemClick = {
+//            val action = HomeFragmentDirections.actionHomeFragmentToDetailFragment(it.id)
+//            findNavController().navigate(action)
+//        }
+//        binding.rvListStory.adapter = adapter
+//
+//    }
 
     private fun getToken() {
         viewModel.getSession().observe(viewLifecycleOwner) {token ->
@@ -78,22 +74,25 @@ class HomeFragment : Fragment() {
         }
     }
 
+
     private fun observe(token: String) {
-        viewModel.getAllStories(token).observe(viewLifecycleOwner) {
-            when(it) {
-                is Result.Loading -> {
-                    showLoading(true)
-                }
-                is Result.Success -> {
-                    showLoading(false)
-                    setUpRvStories(it.data)
-                }
-                is Result.Error -> {
-                    showLoading(false)
-                    Toast.makeText(requireContext(), it.error, Toast.LENGTH_SHORT).show()
-                }
+        val adapter = StoriesAdapter()
+        binding.rvListStory.adapter = adapter.withLoadStateFooter(
+            footer = LoadingStateAdapter {
+                adapter.retry()
             }
+        )
+        viewModel.getStories(token).observe(viewLifecycleOwner) {
+            if (it != null) {
+                adapter.submitData(lifecycle, it)
+            }
+
         }
+        adapter.onItemClick = {
+            val action = HomeFragmentDirections.actionHomeFragmentToDetailFragment(it.id)
+            findNavController().navigate(action)
+        }
+
     }
 
     private fun setAction() {
@@ -122,6 +121,10 @@ class HomeFragment : Fragment() {
 
                     true
                 }
+                R.id.action_maps -> {
+                   startActivity(Intent(requireContext(), MapsActivity::class.java))
+                    true
+                }
                 else -> false
             }
         }
@@ -129,14 +132,6 @@ class HomeFragment : Fragment() {
         binding.btnAdd.setOnClickListener {
             val action = HomeFragmentDirections.actionHomeFragmentToPostFragment()
             findNavController().navigate(action)
-        }
-    }
-
-    private fun showLoading(isLoading: Boolean) {
-        if (isLoading) {
-            binding.progressBar.show()
-        } else {
-            binding.progressBar.hide()
         }
     }
 

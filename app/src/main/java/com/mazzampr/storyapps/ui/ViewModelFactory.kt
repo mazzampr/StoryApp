@@ -9,6 +9,7 @@ import com.mazzampr.storyapps.ui.auth.viewmodel.LoginViewModel
 import com.mazzampr.storyapps.ui.auth.viewmodel.RegisterViewModel
 import com.mazzampr.storyapps.ui.main.viewmodel.DetailViewModel
 import com.mazzampr.storyapps.ui.main.viewmodel.HomeViewModel
+import com.mazzampr.storyapps.ui.main.viewmodel.MapsViewModel
 import com.mazzampr.storyapps.ui.main.viewmodel.PostViewModel
 
 @Suppress("UNCHECKED_CAST")
@@ -19,6 +20,8 @@ class ViewModelFactory private constructor(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             return HomeViewModel(repository) as T
+        } else if (modelClass.isAssignableFrom(MapsViewModel::class.java)) {
+            return MapsViewModel(repository) as T
         } else if (modelClass.isAssignableFrom(DetailViewModel::class.java)) {
             return DetailViewModel(repository) as T
         } else if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {

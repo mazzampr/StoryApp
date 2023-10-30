@@ -12,5 +12,5 @@ class PostViewModel(private val repository: StoryRepository): ViewModel() {
     fun getSession(): LiveData<String> {
         return repository.getSession().asLiveData()
     }
-    fun uploadStory(token: String, image: MultipartBody.Part, desc: RequestBody) = repository.uploadStory(token, image, desc)
+    fun uploadStory(token: String, image: MultipartBody.Part, desc: RequestBody, lat: Float, lon: Float) = repository.uploadStory(token, image, desc, lat, lon)
 }

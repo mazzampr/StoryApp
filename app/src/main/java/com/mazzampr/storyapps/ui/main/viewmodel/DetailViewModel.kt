@@ -10,5 +10,5 @@ class DetailViewModel(private val repository: StoryRepository): ViewModel() {
     fun getSession(): LiveData<String> {
         return repository.getSession().asLiveData()
     }
-    fun getDetailStory(token: String, id: String) = repository.getStoryDetail(token, id)
+    fun getDetailStory(token: String, id: String) =  repository.getStoryDetail(token, id)
 }
