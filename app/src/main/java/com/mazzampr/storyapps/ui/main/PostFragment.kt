@@ -20,7 +20,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.maps.GoogleMap
 import com.mazzampr.storyapps.R
 import com.mazzampr.storyapps.data.Result
 import com.mazzampr.storyapps.databinding.FragmentPostBinding
@@ -37,7 +36,6 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class PostFragment : Fragment() {
-    private lateinit var mMap: GoogleMap
     private lateinit var client: FusedLocationProviderClient
     private lateinit var currentLocation: Location
     private var _binding: FragmentPostBinding? = null
@@ -61,7 +59,6 @@ class PostFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         client = LocationServices.getFusedLocationProviderClient(requireContext())
-        getCurrentLocation()
         setupAction()
     }
 
@@ -88,6 +85,35 @@ class PostFragment : Fragment() {
         viewModel.getSession().observe(viewLifecycleOwner) {token ->
             if (!(token == null || token == "")) {
                 tokenPost = "Bearer $token"
+            }
+        }
+    }
+
+    private fun observeUploadWithoutLocation(token: String, image: MultipartBody.Part, desc: RequestBody) {
+        viewModel.uploadStoryWithoutLocation(token, image, desc).observe(viewLifecycleOwner) {
+            when(it) {
+                is Result.Loading -> {
+                    binding.progressIndicator.show()
+                    binding.buttonAdd.isEnabled = false
+                }
+                is Result.Success -> {
+                    binding.progressIndicator.hide()
+                    AlertDialog.Builder(requireContext()).apply {
+                        setTitle("Upload Succeed!")
+                        setMessage(getString(R.string.success_upload))
+                        setPositiveButton(getString(R.string.ok)) { _, _ ->
+                            val intent = Intent(requireContext(), MainActivity::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                            startActivity(intent)
+                        }
+                        create()
+                        show()
+                    }
+                }
+                is Result.Error -> {
+                    binding.progressIndicator.isEnabled = false
+                    toast(it.error)
+                }
             }
         }
     }
@@ -145,7 +171,12 @@ class PostFragment : Fragment() {
                 requestImageFile
             )
             getToken()
-            observeUpload(tokenPost, multipartBody, requestBody, lat, lon)
+            if (binding.switchInput.isChecked) {
+                observeUpload(tokenPost, multipartBody, requestBody, lat, lon)
+            } else {
+                observeUploadWithoutLocation(tokenPost, multipartBody, requestBody)
+            }
+
         } ?: toast("Gambar Kosong!")
 
     }
@@ -169,6 +200,11 @@ class PostFragment : Fragment() {
             }
             btnBack.setOnClickListener {
                 findNavController().navigateUp()
+            }
+            switchInput.setOnCheckedChangeListener { buttonView, isChecked ->
+                if (isChecked) {
+                    getCurrentLocation()
+                }
             }
         }
     }
@@ -208,7 +244,7 @@ class PostFragment : Fragment() {
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            mMap.isMyLocationEnabled = true
+
         } else {
             requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
         }

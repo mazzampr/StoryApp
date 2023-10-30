@@ -13,4 +13,5 @@ class PostViewModel(private val repository: StoryRepository): ViewModel() {
         return repository.getSession().asLiveData()
     }
     fun uploadStory(token: String, image: MultipartBody.Part, desc: RequestBody, lat: Float, lon: Float) = repository.uploadStory(token, image, desc, lat, lon)
+    fun uploadStoryWithoutLocation(token: String, image: MultipartBody.Part, desc: RequestBody) = repository.uploadStoryWithoutLocation(token, image, desc)
 }

@@ -31,4 +31,5 @@
     <string name="log_out">Log Out</string>
     <string name="maps">Maps</string>
     <string name="retry">Retry</string>
+    <string name="post_location">Post your current location?</string>
 </resources>

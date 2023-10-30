@@ -69,6 +69,37 @@ class StoryRepository private constructor(
         return uploadResult
     }
 
+    fun uploadStoryWithoutLocation(token: String, image: MultipartBody.Part, desc: RequestBody) : LiveData<Result<ErrorResponse>> {
+        uploadResult.value = Result.Loading
+        apiService.uploadStoryWithoutLocation(token, image, desc).enqueue(object : Callback<ErrorResponse>{
+            override fun onResponse(call: Call<ErrorResponse>, response: Response<ErrorResponse>) {
+                try {
+                    if (response.isSuccessful) {
+                        val responseBody = response.body()
+                        if (responseBody != null) {
+                            uploadResult.value = Result.Success(responseBody)
+                        }
+                    }
+                    else {
+                        throw HttpException(response)
+                    }
+
+                } catch (e: HttpException) {
+                    val jsonInString = e.response()?.errorBody()?.string()
+                    val errorBody = Gson().fromJson(jsonInString, ErrorResponse::class.java)
+                    val errorMessage = errorBody.message
+                    uploadResult.value = Result.Error(errorMessage!!)
+                }
+            }
+
+            override fun onFailure(call: Call<ErrorResponse>, t: Throwable) {
+                uploadResult.value = Result.Error(t.message.toString())
+            }
+
+        })
+        return uploadResult
+    }
+
     fun login(email: String, password: String): LiveData<Result<String>> {
         resultLogin.value = Result.Loading
         apiService.login(email, password).enqueue(object : Callback<LoginResponse> {

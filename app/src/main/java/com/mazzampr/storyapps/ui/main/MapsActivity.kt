@@ -1,7 +1,9 @@
 package com.mazzampr.storyapps.ui.main
 
+import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -9,6 +11,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
 import com.mazzampr.storyapps.R
 import com.mazzampr.storyapps.data.Result
@@ -37,11 +40,25 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
-        observe()
         mMap.uiSettings.isZoomControlsEnabled = true
         mMap.uiSettings.isIndoorLevelPickerEnabled = true
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isMapToolbarEnabled = true
+
+        setMapStyle()
+        observe()
+    }
+
+    private fun setMapStyle() {
+        try {
+            val success =
+                mMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(this, R.raw.map_style))
+            if (!success) {
+                Log.e(TAG, "Style parsing failed.")
+            }
+        } catch (exception: Resources.NotFoundException) {
+            Log.e(TAG, "Can't find style. Error: ", exception)
+        }
     }
 
     private fun observe() {
@@ -63,14 +80,17 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                         boundsBuilder.include(latLng)
                     }
                     val bounds: LatLngBounds = boundsBuilder.build()
+
                     mMap.animateCamera(
+
                         CameraUpdateFactory.newLatLngBounds(
                             bounds,
                             resources.displayMetrics.widthPixels,
                             resources.displayMetrics.heightPixels,
-                            300
+                            1000
                         )
                     )
+                    Log.d("AnimateCamera", "Test")
                 }
                 is Result.Error -> {
                     binding.progressBar.hide()
@@ -79,4 +99,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
     }
+
+    companion object {
+        private const val TAG = "MapsActivity"
+    }
+
 }
